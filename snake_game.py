@@ -34,6 +34,7 @@ class SnakeGame:
         self.snake_body = [[WIDTH / 2, HEIGHT / 2], [WIDTH / 2 - 10, HEIGHT / 2], [WIDTH / 2 - 20, HEIGHT / 2]]
         self.score = 0
         self.direction_change_time = pygame.time.get_ticks()
+        self.obstacle_timer = pygame.time.get_ticks()
 
     def update_snake_pos(self):
         current_head_x, current_head_y = self.snake_body[-1]
@@ -63,9 +64,9 @@ class SnakeGame:
             self.speed = random.randint(10, 20)
             self.apple_pos = [random.randint(0, WIDTH - 20) // 20 * 20,
                               random.randint(0, HEIGHT - 20) // 20 * 20]
-        else:
-            if len(self.snake_body) > 1:
-                self.snake_body.pop(0)
+        elif pygame.time.get_ticks() - self.obstacle_timer > 3000:
+            self.speed -= 1
+            self.obstacle_timer = pygame.time.get_ticks()
 
         return True
 
@@ -89,25 +90,48 @@ class SnakeGame:
             elif self.direction == 'DOWN':
                 self.direction = 'RIGHT'
 
+    def add_obstacle(self):
+        if random.random() < 0.1:
+            obstacle_x, obstacle_y = random.randint(0, WIDTH - 20) // 20 * 20,
+                                    random.randint(0, HEIGHT - 20) // 20 * 20
+            self.obstacle_timer = pygame.time.get_ticks()
+
+    def check_collision(self):
+        if (self.snake_body[0][0] < 20 or self.snake_body[0][0] >= WIDTH - 20 or
+            self.snake_body[0][1] < 20 or self.snake_body[0][1] >= HEIGHT - 20):
+            return True
+
+        for obstacle in obstacles:
+            if (obstacle[0][0] == self.snake_body[0][0] and obstacle[0][1] == self.snake_body[0][1]):
+                return True
+
     def run(self):
         clock = pygame.time.Clock()
-        while True:
+        running = True
+        while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+                    running = False
 
-            self.update_snake_pos()
-            if not self.update_snake_pos():
-                print("Snake crashed.")
-                break
+            self.add_obstacle()
             self.handle_events()
+
+            new_head_pos = [self.snake_body[0][0] + 20, self.snake_body[0][1]]
+            if self.check_collision() or not self.update_snake_pos(new_head_pos):
+                print(f"Game over! Final score: {self.score}")
+                running = False
+
+            screen.fill(BLACK)
+            for obstacle in obstacles:
+                pygame.draw.rect(screen, RED, (obstacle[0][0], obstacle[0][1], 10, 10))
             self.draw_snake()
-            clock.tick(self.speed)
+            pygame.display.flip()
+
+            clock.tick(60)
+
+        pygame.quit()
 
 if __name__ == "__main__":
-    try:
-        snake_game = SnakeGame()
-        snake_game.run()
-    except Exception as e:
-        print(f"Error running game: {e}")
+    obstacles = []
+    snake_game = SnakeGame()
+    snake_game.run()
