@@ -28,6 +28,9 @@ food_pos = [random.randrange(1, (screen_width // 10)) * 10, random.randrange(1, 
 # Direction variables
 direction = "right"
 
+# Score variable
+score = 0
+
 # Game loop
 while True:
     for event in pygame.event.get():
@@ -56,18 +59,19 @@ while True:
 
     # Check for collision with food
     if new_head_pos == food_pos:
+        score += 1
         food_pos = [random.randrange(1, (screen_width // 10)) * 10, random.randrange(1, (screen_height // 10)) * 10]
     else:
         snake_body.insert(0, list(new_head_pos))
         if new_head_pos in snake_body[1:]:
-            print("Game Over")
+            print("Game Over. Your score was: ", score)
             pygame.quit()
             sys.exit()
 
     # Check for collision with wall
     if (new_head_pos[0] < 0 or new_head_pos[0] >= screen_width or 
         new_head_pos[1] < 0 or new_head_pos[1] >= screen_height):
-        print("Game Over")
+        print("Game Over. Your score was: ", score)
         pygame.quit()
         sys.exit()
 
@@ -79,6 +83,11 @@ while True:
     for pos in snake_body:
         pygame.draw.rect(screen, white, [pos[0], pos[1], 10, 10])
     pygame.draw.rect(screen, red, [food_pos[0], food_pos[1], 10, 10])
+
+    # Draw score
+    font = pygame.font.Font(None, 36)
+    text = font.render("Score: " + str(score), True, white)
+    screen.blit(text, [10, 10])
 
     # Update display
     pygame.display.update()
