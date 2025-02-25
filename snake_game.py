@@ -38,7 +38,13 @@ while True:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.KEYDOWN:
+        elif event.type == pygame.KEYDOWN and game_over_screen:
+            if event.key == pygame.K_SPACE:
+                snake_pos = [100, 50]
+                snake_body = [[100, 50], [90, 50], [80, 50], [70, 50], [60, 50], [50, 50], [40, 50]]
+                score = 0
+                game_over_screen = False
+        elif event.type == pygame.KEYDOWN and not game_over_screen:
             if event.key == pygame.K_UP and direction != "down":
                 direction = "up"
             if event.key == pygame.K_DOWN and direction != "up":
@@ -84,7 +90,9 @@ while True:
         font = pygame.font.Font(None, 72)
         text = font.render("Game Over", True, red)
         screen.blit(text, [screen_width // 2 - text.get_width() // 2, screen_height // 2 - text.get_height() // 2])
-        pygame.display.update()
+        font = pygame.font.Font(None, 36)
+        text = font.render("Press SPACE to start over", True, white)
+        screen.blit(text, [screen_width // 4, screen_height // 2 + 50])
     else:
         pygame.draw.rect(screen, red, [food_pos[0], food_pos[1], 10, 10])
 
