@@ -28,7 +28,7 @@ font = pygame.font.Font(None, 36)
 class SnakeGame:
     def __init__(self):
         self.direction = 'RIGHT'
-        self.speed = 10
+        self.speed = 5
         self.apple_pos = [random.randint(0, WIDTH - 20) // 20 * 20,
                           random.randint(0, HEIGHT - 20) // 20 * 20]
         self.snake_body = [[WIDTH / 2, HEIGHT / 2], [WIDTH / 2 - 10, HEIGHT / 2], [WIDTH / 2 - 20, HEIGHT / 2]]
