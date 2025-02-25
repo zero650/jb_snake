@@ -64,16 +64,14 @@ while True:
     else:
         snake_body.insert(0, list(new_head_pos))
         if new_head_pos in snake_body[1:]:
-            print("Game Over. Your score was: ", score)
-            pygame.quit()
-            sys.exit()
+            game_over_screen = True
+            break
 
     # Check for collision with wall
     if (new_head_pos[0] < 0 or new_head_pos[0] >= screen_width or 
         new_head_pos[1] < 0 or new_head_pos[1] >= screen_height):
-        print("Game Over. Your score was: ", score)
-        pygame.quit()
-        sys.exit()
+        game_over_screen = True
+        break
 
     # Update snake position
     snake_pos = list(new_head_pos)
@@ -82,7 +80,14 @@ while True:
     screen.fill(black)
     for pos in snake_body:
         pygame.draw.rect(screen, white, [pos[0], pos[1], 10, 10])
-    pygame.draw.rect(screen, red, [food_pos[0], food_pos[1], 10, 10])
+    if game_over_screen:
+        font = pygame.font.Font(None, 72)
+        text = font.render("Game Over", True, red)
+        screen.blit(text, [screen_width // 2 - text.get_width() // 2, screen_height // 2 - text.get_height() // 2])
+        pygame.display.update()
+        time.sleep(2)
+    else:
+        pygame.draw.rect(screen, red, [food_pos[0], food_pos[1], 10, 10])
 
     # Draw score
     font = pygame.font.Font(None, 36)
