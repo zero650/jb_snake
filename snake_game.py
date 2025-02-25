@@ -32,6 +32,7 @@ direction = "right"
 score = 0
 
 # Game loop
+game_over_screen = False
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -48,33 +49,32 @@ while True:
                 direction = "right"
 
     # Move snake
-    if direction == "up":
-        new_head_pos = [snake_pos[0], snake_pos[1] - 10]
-    elif direction == "down":
-        new_head_pos = [snake_pos[0], snake_pos[1] + 10]
-    elif direction == "left":
-        new_head_pos = [snake_pos[0] - 10, snake_pos[1]]
-    elif direction == "right":
-        new_head_pos = [snake_pos[0] + 10, snake_pos[1]]
+    if not game_over_screen:
+        if direction == "up":
+            new_head_pos = [snake_pos[0], snake_pos[1] - 10]
+        elif direction == "down":
+            new_head_pos = [snake_pos[0], snake_pos[1] + 10]
+        elif direction == "left":
+            new_head_pos = [snake_pos[0] - 10, snake_pos[1]]
+        elif direction == "right":
+            new_head_pos = [snake_pos[0] + 10, snake_pos[1]]
 
-    # Check for collision with food
-    if new_head_pos == food_pos:
-        score += 1
-        food_pos = [random.randrange(1, (screen_width // 10)) * 10, random.randrange(1, (screen_height // 10)) * 10]
-    else:
-        snake_body.insert(0, list(new_head_pos))
-        if new_head_pos in snake_body[1:]:
+        # Check for collision with food
+        if new_head_pos == food_pos:
+            score += 1
+            food_pos = [random.randrange(1, (screen_width // 10)) * 10, random.randrange(1, (screen_height // 10)) * 10]
+        else:
+            snake_body.insert(0, list(new_head_pos))
+            if new_head_pos in snake_body[1:]:
+                game_over_screen = True
+
+        # Check for collision with wall
+        if (new_head_pos[0] < 0 or new_head_pos[0] >= screen_width or 
+            new_head_pos[1] < 0 or new_head_pos[1] >= screen_height):
             game_over_screen = True
-            break
 
-    # Check for collision with wall
-    if (new_head_pos[0] < 0 or new_head_pos[0] >= screen_width or 
-        new_head_pos[1] < 0 or new_head_pos[1] >= screen_height):
-        game_over_screen = True
-        break
-
-    # Update snake position
-    snake_pos = list(new_head_pos)
+        # Update snake position
+        snake_pos = list(new_head_pos)
 
     # Draw everything
     screen.fill(black)
@@ -85,7 +85,6 @@ while True:
         text = font.render("Game Over", True, red)
         screen.blit(text, [screen_width // 2 - text.get_width() // 2, screen_height // 2 - text.get_height() // 2])
         pygame.display.update()
-        time.sleep(2)
     else:
         pygame.draw.rect(screen, red, [food_pos[0], food_pos[1], 10, 10])
 
