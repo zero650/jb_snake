@@ -1,105 +1,87 @@
 import pygame
 import sys
+import time
 import random
 
-# Initialize Pygame
-try:
-    pygame.init()
-except Exception as e:
-    print(f"Error initializing Pygame: {e}")
-    sys.exit(1)
+# Pygame Initialization
+pygame.init()
 
-# Set up some constants
-WIDTH, HEIGHT = 800, 600
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-BLACK = (0, 0, 0)
+# Screen size and colors
+screen_width = 800
+screen_height = 600
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption("Snake Game")
 
-# Set up the display
-try:
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-except Exception as e:
-    print(f"Error setting up display: {e}")
-    sys.exit(1)
+# Colors
+black = (0, 0, 0)
+white = (255, 255, 255)
+red = (255, 0, 0)
 
-# Set up the font for the score
-font = pygame.font.Font(None, 36)
+# Snake properties
+snake_length = 10
+snake_pos = [100, 50]
+snake_body = [[100, 50], [90, 50], [80, 50], [70, 50], [60, 50], [50, 50], [40, 50]]
 
-class SnakeGame:
-    def __init__(self):
-        self.direction = 'RIGHT'
-        self.speed = 2
-        self.apple_pos = [random.randint(0, WIDTH - 20) // 20 * 20,
-                          random.randint(0, HEIGHT - 20) // 20 * 20]
-        self.snake_body = [[WIDTH / 2, HEIGHT / 2], [WIDTH / 2 - 10, HEIGHT / 2], [WIDTH / 2 - 20, HEIGHT / 2]]
-        self.score = 0
-        self.direction_change_time = pygame.time.get_ticks()
-        self.obstacle_timer = pygame.time.get_ticks()
+# Food properties
+food_pos = [random.randrange(1, (screen_width // 10)) * 10, random.randrange(1, (screen_height // 10)) * 10]
 
-    def update_snake_pos(self):
-        current_head_x, current_head_y = self.snake_body[-1]
-        if self.direction == 'RIGHT':
-            new_head_pos = [current_head_x + 20, current_head_y]
-        elif self.direction == 'LEFT':
-            new_head_pos = [current_head_x - 20, current_head_y]
-        elif self.direction == 'UP':
-            new_head_pos = [current_head_x, current_head_y - 20]
-        elif self.direction == 'DOWN':
-            new_head_pos = [current_head_x, current_head_y + 20]
+# Direction variables
+direction = "right"
 
-        # Boundary checking
-        if (new_head_pos[0] < 0 or new_head_pos[0] >= WIDTH or
-            new_head_pos[1] < 0 or new_head_pos[1] >= HEIGHT):
-            return False
+# Game loop
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP and direction != "down":
+                direction = "up"
+            if event.key == pygame.K_DOWN and direction != "up":
+                direction = "down"
+            if event.key == pygame.K_LEFT and direction != "right":
+                direction = "left"
+            if event.key == pygame.K_RIGHT and direction != "left":
+                direction = "right"
 
-        # Collision detection with itself
-        for i in range(1, len(self.snake_body)):
-            if self.snake_body[-1] == [self.snake_body[i][0], self.snake_body[i][1]]:
-                return True
+    # Move snake
+    if direction == "up":
+        new_head_pos = [snake_pos[0], snake_pos[1] - 10]
+    elif direction == "down":
+        new_head_pos = [snake_pos[0], snake_pos[1] + 10]
+    elif direction == "left":
+        new_head_pos = [snake_pos[0] - 10, snake_pos[1]]
+    elif direction == "right":
+        new_head_pos = [snake_pos[0] + 10, snake_pos[1]]
 
-        return True
+    # Check for collision with food
+    if new_head_pos == food_pos:
+        food_pos = [random.randrange(1, (screen_width // 10)) * 10, random.randrange(1, (screen_height // 10)) * 10]
+    else:
+        snake_body.insert(0, list(new_head_pos))
+        if new_head_pos in snake_body[1:]:
+            print("Game Over")
+            pygame.quit()
+            sys.exit()
 
-    def run(self):
-        clock = pygame.time.Clock()
-        running = True
-        obstacles = []
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    running = False
-
-            # Add obstacle at random interval
-            if self.obstacle_timer < pygame.time.get_ticks() - 3000:
-                obstacles.append([random.randint(0, WIDTH - 20) // 20 * 20, random.randint(0, HEIGHT - 20) // 20 * 20])
-
-            # Move snake
-            new_head_pos = [self.snake_body[0][0] + 20, self.snake_body[0][1]]
-            if not self.update_snake_pos():
-                print(f"Game over! Final score: {self.score}")
-                running = False
-
-            # Clear screen and draw everything
-            screen.fill(BLACK)
-
-            # Draw obstacles
-            for obstacle in obstacles:
-                pygame.draw.rect(screen, RED, (obstacle[0], obstacle[1], 10, 10))
-
-            # Update snake body
-            self.snake_body.append(new_head_pos)
-            if len(self.snake_body) > 3:
-                self.snake_body.pop(0)
-
-            # Draw snake body
-            for part in self.snake_body:
-                pygame.draw.rect(screen, WHITE, (part[0], part[1], 10, 10))
-
-            pygame.display.flip()
-
-            clock.tick(60)
-
+    # Check for collision with wall
+    if (new_head_pos[0] < 0 or new_head_pos[0] >= screen_width or 
+        new_head_pos[1] < 0 or new_head_pos[1] >= screen_height):
+        print("Game Over")
         pygame.quit()
+        sys.exit()
 
-if __name__ == "__main__":
-    snake_game = SnakeGame()
-    snake_game.run()
+    # Update snake position
+    snake_pos = list(new_head_pos)
+
+    # Draw everything
+    screen.fill(black)
+    for pos in snake_body:
+        pygame.draw.rect(screen, white, [pos[0], pos[1], 10, 10])
+    pygame.draw.rect(screen, red, [food_pos[0], food_pos[1], 10, 10])
+
+    # Update display
+    pygame.display.update()
+
+    # Cap framerate at 60 FPS
+    time.sleep(0.1)
