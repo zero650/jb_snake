@@ -53,78 +53,47 @@ class SnakeGame:
             return False
 
         # Collision detection with itself
-        for body_part in self.snake_body[:-1]:
-            if body_part == new_head_pos:
-                return False
-
-        # If no collision, update the snake's position
-        self.snake_body.append(new_head_pos)
-        if new_head_pos == self.apple_pos:
-            self.score += 1
-            self.speed = random.randint(10, 20)
-            self.apple_pos = [random.randint(0, WIDTH - 20) // 20 * 20,
-                              random.randint(0, HEIGHT - 20) // 20 * 20]
-        elif pygame.time.get_ticks() - self.obstacle_timer > 3000:
-            self.speed -= 1
-            self.obstacle_timer = pygame.time.get_ticks()
+        for i in range(1, len(self.snake_body)):
+            if self.snake_body[-1] == [self.snake_body[i][0], self.snake_body[i][1]]:
+                return True
 
         return True
-
-    def draw_snake(self):
-        screen.fill(BLACK)
-        for body_part in self.snake_body:
-            pygame.draw.rect(screen, WHITE, (body_part[0], body_part[1], 10, 10))
-        score_text = font.render(f'Score: {self.score}', True, WHITE)
-        screen.blit(score_text, (10, 10))
-
-    def handle_events(self):
-        current_time = pygame.time.get_ticks()
-        if current_time - self.direction_change_time > 200:
-            self.direction_change_time = current_time
-            if self.direction == 'RIGHT':
-                self.direction = 'UP'
-            elif self.direction == 'LEFT':
-                self.direction = 'DOWN'
-            elif self.direction == 'UP':
-                self.direction = 'LEFT'
-            elif self.direction == 'DOWN':
-                self.direction = 'RIGHT'
-
-    def add_obstacle(self):
-        if random.random() < 0.1:
-            obstacle_x, obstacle_y = random.randint(0, WIDTH - 20) // 20 * 20,
-                                    random.randint(0, HEIGHT - 20) // 20 * 20
-            self.obstacle_timer = pygame.time.get_ticks()
-
-    def check_collision(self):
-        if (self.snake_body[0][0] < 20 or self.snake_body[0][0] >= WIDTH - 20 or
-            self.snake_body[0][1] < 20 or self.snake_body[0][1] >= HEIGHT - 20):
-            return True
-
-        for obstacle in obstacles:
-            if (obstacle[0][0] == self.snake_body[0][0] and obstacle[0][1] == self.snake_body[0][1]):
-                return True
 
     def run(self):
         clock = pygame.time.Clock()
         running = True
+        obstacles = []
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
 
-            self.add_obstacle()
-            self.handle_events()
+            # Add obstacle at random interval
+            if self.obstacle_timer < pygame.time.get_ticks() - 3000:
+                obstacles.append([random.randint(0, WIDTH - 20) // 20 * 20, random.randint(0, HEIGHT - 20) // 20 * 20])
 
+            # Move snake
             new_head_pos = [self.snake_body[0][0] + 20, self.snake_body[0][1]]
-            if self.check_collision() or not self.update_snake_pos(new_head_pos):
+            if not self.update_snake_pos():
                 print(f"Game over! Final score: {self.score}")
                 running = False
 
+            # Clear screen and draw everything
             screen.fill(BLACK)
+
+            # Draw obstacles
             for obstacle in obstacles:
-                pygame.draw.rect(screen, RED, (obstacle[0][0], obstacle[0][1], 10, 10))
-            self.draw_snake()
+                pygame.draw.rect(screen, RED, (obstacle[0], obstacle[1], 10, 10))
+
+            # Update snake body
+            self.snake_body.append(new_head_pos)
+            if len(self.snake_body) > 3:
+                self.snake_body.pop(0)
+
+            # Draw snake body
+            for part in self.snake_body:
+                pygame.draw.rect(screen, WHITE, (part[0], part[1], 10, 10))
+
             pygame.display.flip()
 
             clock.tick(60)
@@ -132,6 +101,5 @@ class SnakeGame:
         pygame.quit()
 
 if __name__ == "__main__":
-    obstacles = []
     snake_game = SnakeGame()
     snake_game.run()
