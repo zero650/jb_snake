@@ -30,22 +30,24 @@ class SnakeGame:
         self.speed = 20
         self.apple_pos = [random.randint(0, WIDTH - 20) // 20 * 20,
                           random.randint(0, HEIGHT - 20) // 20 * 20]
-        self.snake_body = [[self.apple_pos[0], self.apple_pos[1]], ]
+        self.snake_body = [[WIDTH / 2, HEIGHT / 2], [WIDTH / 2 - 10, HEIGHT / 2], [WIDTH / 2 - 20, HEIGHT / 2]]
         self.score = 0
+        self.direction_change_time = pygame.time.get_ticks()
 
     def update_snake_pos(self):
-        head_x, head_y = self.snake_body[-1][0], self.snake_body[-1][1]
+        current_head_x, current_head_y = self.snake_body[-1]
         if self.direction == 'RIGHT':
-            new_head_pos = [head_x + 20, head_y]
+            new_head_pos = [current_head_x + 20, current_head_y]
         elif self.direction == 'LEFT':
-            new_head_pos = [head_x - 20, head_y]
+            new_head_pos = [current_head_x - 20, current_head_y]
         elif self.direction == 'UP':
-            new_head_pos = [head_x, head_y - 20]
+            new_head_pos = [current_head_x, current_head_y - 20]
         elif self.direction == 'DOWN':
-            new_head_pos = [head_x, head_y + 20]
+            new_head_pos = [current_head_x, current_head_y + 20]
 
         # Boundary checking
-        if (new_head_pos[0] < 0) or (new_head_pos[0] >= WIDTH) or (new_head_pos[1] < 0) or (new_head_pos[1] >= HEIGHT):
+        if (new_head_pos[0] < 0 or new_head_pos[0] >= WIDTH or
+            new_head_pos[1] < 0 or new_head_pos[1] >= HEIGHT):
             return False
 
         # Collision detection with itself
@@ -57,7 +59,7 @@ class SnakeGame:
         self.snake_body.append(new_head_pos)
         if new_head_pos == self.apple_pos:
             self.score += 1
-            self.speed = 20
+            self.speed = random.randint(10, 20)
             self.apple_pos = [random.randint(0, WIDTH - 20) // 20 * 20,
                               random.randint(0, HEIGHT - 20) // 20 * 20]
         else:
@@ -72,32 +74,35 @@ class SnakeGame:
             pygame.draw.rect(screen, WHITE, (body_part[0], body_part[1], 10, 10))
         score_text = font.render(f'Score: {self.score}', True, WHITE)
         screen.blit(score_text, (10, 10))
-        pygame.display.flip()
 
     def handle_events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT and self.direction != 'RIGHT':
-                    self.direction = 'LEFT'
-                elif event.key == pygame.K_RIGHT and self.direction != 'LEFT':
-                    self.direction = 'RIGHT'
-                elif event.key == pygame.K_UP and self.direction != 'DOWN':
-                    self.direction = 'UP'
-                elif event.key == pygame.K_DOWN and self.direction != 'UP':
-                    self.direction = 'DOWN'
+        current_time = pygame.time.get_ticks()
+        if current_time - self.direction_change_time > 200:
+            self.direction_change_time = current_time
+            if self.direction == 'RIGHT':
+                self.direction = 'UP'
+            elif self.direction == 'LEFT':
+                self.direction = 'DOWN'
+            elif self.direction == 'UP':
+                self.direction = 'LEFT'
+            elif self.direction == 'DOWN':
+                self.direction = 'RIGHT'
 
     def run(self):
         clock = pygame.time.Clock()
         while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
             self.update_snake_pos()
             if not self.update_snake_pos():
                 print("Snake crashed.")
                 break
             self.handle_events()
-            clock.tick(60)
+            self.draw_snake()
+            clock.tick(self.speed)
 
 if __name__ == "__main__":
     try:
