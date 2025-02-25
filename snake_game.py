@@ -85,10 +85,8 @@ while True:
     # Draw everything
     screen.fill(black)
     for pos in snake_body:
-        if pos == snake_pos:
-            pygame.draw.rect(screen, (0, 0, 255), [pos[0], pos[1], 10, 10])  # blue color for the head of the snake
-        else:
-            pygame.draw.rect(screen, white, [pos[0], pos[1], 10, 10])
+        pygame.draw.rect(screen, (0, 0, 255), [pos[0], pos[1], 10, 10])  # blue color for the whole snake
+
     if game_over_screen:
         font = pygame.font.Font(None, 72)
         text = font.render("Game Over", True, red)
@@ -97,12 +95,9 @@ while True:
         text = font.render("Press SPACE to start over", True, white)
         screen.blit(text, [screen_width // 4, screen_height // 2 + 50])
     else:
-        pygame.draw.rect(screen, red, [food_pos[0], food_pos[1], 10, 10])
-
-    # Draw score
-    font = pygame.font.Font(None, 36)
-    text = font.render("Score: " + str(score), True, white)
-    screen.blit(text, [10, 10])
+        food_x = food_pos[0]
+        food_y = food_pos[1]
+        pygame.draw.circle(screen, red, (food_x, food_y), 10)  # drawing a circle for the apple
 
     # Draw score
     font = pygame.font.Font(None, 36)
